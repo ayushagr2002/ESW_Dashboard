@@ -1,2 +1,2 @@
 # ESW_Dashboard
-Team Members: Ayush, SHreyansh, Pranjal, Mugundan
+Team Members: Ayush, Shreyansh, Pranjal, Mugundan

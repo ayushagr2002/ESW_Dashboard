@@ -341,7 +341,7 @@ const WidgetsDropdown = () => {
                 Change: {tdsChange}%
                   {tdsChange > 0.0 ? <CIcon icon={cilArrowTop} /> : <CIcon icon={cilArrowBottom} />}
                 <br></br>
-                Avg: {avg(tdsChange).toFixed(3)}
+                Avg: {avg(tdsData).toFixed(3)}
               </div>
             </div>
           }

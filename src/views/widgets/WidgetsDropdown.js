@@ -149,9 +149,9 @@ const WidgetsDropdown = () => {
           className="mb-4"
           color="primary"
           value={
-            <div style={{display:"flex", width:"150%", justifyContent:"space-between"}} className="stupidFuckingReact">
+            <div style={{display:"flex", width:"130%", justifyContent:"space-between"}} className="stupidFuckingReact">
               <div>
-              {Number(tempData[tempData.length - 1]) === tempData[tempData.length - 1] ? tempData[tempData.length - 1].toFixed(2) : 0}{' '}
+              {Number(tempData[tempData.length - 1]) === tempData[tempData.length - 1] ? tempData[tempData.length - 1].toFixed(2) : 0}{' C°'}
               </div>
               <div className="fs-6 fw-normal">
                 Change: {tempChange}%

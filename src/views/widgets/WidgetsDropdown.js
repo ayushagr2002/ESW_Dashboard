@@ -25,7 +25,12 @@ const WidgetsDropdown = () => {
   const [pHData, setPHData] = useState([])
   const [pHChange, setPHChange] = useState(0.0)
 
-  // Get The Last 10 Sensor Values every 15 seconds
+  const avg = (data) => {
+    for (var i = 0, sum = 0; i < data.length; sum += data[i++]);
+    return sum / data.length;
+  }
+
+  // Get The Last 10 Sensor Values every 5 minutes
   useEffect(() => {
     const getData = async () => {
       // Fetch Data from thingspeak
@@ -67,7 +72,7 @@ const WidgetsDropdown = () => {
     const getData = async () => {
       // Fetch Data from thingspeak
       const response = await fetch(
-        'https://api.thingspeak.com/channels/1834719/feeds.json?results=10',
+        'https://api.thingspeak.com/channels/1834719/feeds.json?results=15',
       )
       const body = await response.json()
       console.log(body)
@@ -78,10 +83,10 @@ const WidgetsDropdown = () => {
       var pHDataCur = []
       var timeDataCur = []
       body.feeds.map((data) => {
-        tempDataCur.push(data.field1)
-        turbidityDataCur.push(data.field2)
-        tdsDataCur.push(data.field3)
-        pHDataCur.push(data.field4)
+        tempDataCur.push(parseFloat(data.field1))
+        turbidityDataCur.push(parseInt(data.field2))
+        tdsDataCur.push(parseInt(data.field3))
+        pHDataCur.push(parseFloat(data.field4))
         var curdate = new Date(data.created_at)
         timeDataCur.push(curdate.toLocaleTimeString())
       })
@@ -92,7 +97,6 @@ const WidgetsDropdown = () => {
       setTdsData([...tdsDataCur])
       setPHData([...pHDataCur])
       setTimeLabels([...timeDataCur])
-      // console.log(tempDataCur)
     }
     getData()
   }, [])
@@ -150,28 +154,32 @@ const WidgetsDropdown = () => {
           className="mb-4"
           color="primary"
           value={
-            <>
-              {tempData.slice(-1)}{' '}
-              <span className="fs-6 fw-normal">
-                ({tempChange}%
-                {tempChange > 0.0 ? <CIcon icon={cilArrowTop} /> : <CIcon icon={cilArrowBottom} />})
-              </span>
-            </>
+            <div style={{display:"flex", width:"150%", justifyContent:"space-between"}} className="stupidFuckingReact">
+              <div>
+              {Number(tempData[tempData.length - 1]) === tempData[tempData.length - 1] ? tempData[tempData.length - 1].toFixed(2) : 0}{' '}
+              </div>
+              <div className="fs-6 fw-normal">
+                Change: {tempChange}%
+                  {tempChange > 0.0 ? <CIcon icon={cilArrowTop} /> : <CIcon icon={cilArrowBottom} />}
+                <br></br>
+                Avg: {avg(tempData).toFixed(3)}
+              </div>
+            </div>
           }
           title="Temperature"
-          action={
-            <CDropdown alignment="end">
-              <CDropdownToggle color="transparent" caret={false} className="p-0">
-                <CIcon icon={cilOptions} className="text-high-emphasis-inverse" />
-              </CDropdownToggle>
-              <CDropdownMenu>
-                <CDropdownItem>Action</CDropdownItem>
-                <CDropdownItem>Another action</CDropdownItem>
-                <CDropdownItem>Something else here...</CDropdownItem>
-                <CDropdownItem disabled>Disabled action</CDropdownItem>
-              </CDropdownMenu>
-            </CDropdown>
-          }
+          // action={
+          //   <CDropdown alignment="end">
+          //     <CDropdownToggle color="transparent" caret={false} className="p-0">
+          //       <CIcon icon={cilOptions} className="text-high-emphasis-inverse" />
+          //     </CDropdownToggle>
+          //     <CDropdownMenu>
+          //       <CDropdownItem>Action</CDropdownItem>
+          //       <CDropdownItem>Another action</CDropdownItem>
+          //       <CDropdownItem>Something else here...</CDropdownItem>
+          //       <CDropdownItem disabled>Disabled action</CDropdownItem>
+          //     </CDropdownMenu>
+          //   </CDropdown>
+          // }
           chart={
             <CChartLine
               className="mt-3 mx-3"
@@ -238,28 +246,32 @@ const WidgetsDropdown = () => {
           className="mb-4"
           color="success"
           value={
-            <>
+            <div style={{display:"flex", width:"195%", justifyContent:"space-between"}} className="stupidFuckingReact">
+              <div>
               {turbidityData.slice(-1)}{' '}
-              <span className="fs-6 fw-normal">
-                ({turbChange}%
-                {turbChange > 0.0 ? <CIcon icon={cilArrowTop} /> : <CIcon icon={cilArrowBottom} />})
-              </span>
-            </>
+              </div>
+              <div className="fs-6 fw-normal">
+                Change: {turbChange}%
+                  {turbChange > 0.0 ? <CIcon icon={cilArrowTop} /> : <CIcon icon={cilArrowBottom} />}
+                <br></br>
+                Avg: {avg(turbidityData).toFixed(3)}
+              </div>
+            </div>
           }
           title="Turbidity"
-          action={
-            <CDropdown alignment="end">
-              <CDropdownToggle color="transparent" caret={false} className="p-0">
-                <CIcon icon={cilOptions} className="text-high-emphasis-inverse" />
-              </CDropdownToggle>
-              <CDropdownMenu>
-                <CDropdownItem>Action</CDropdownItem>
-                <CDropdownItem>Another action</CDropdownItem>
-                <CDropdownItem>Something else here...</CDropdownItem>
-                <CDropdownItem disabled>Disabled action</CDropdownItem>
-              </CDropdownMenu>
-            </CDropdown>
-          }
+          // action={
+          //   <CDropdown alignment="end">
+          //     <CDropdownToggle color="transparent" caret={false} className="p-0">
+          //       <CIcon icon={cilOptions} className="text-high-emphasis-inverse" />
+          //     </CDropdownToggle>
+          //     <CDropdownMenu>
+          //       <CDropdownItem>Action</CDropdownItem>
+          //       <CDropdownItem>Another action</CDropdownItem>
+          //       <CDropdownItem>Something else here...</CDropdownItem>
+          //       <CDropdownItem disabled>Disabled action</CDropdownItem>
+          //     </CDropdownMenu>
+          //   </CDropdown>
+          // }
           chart={
             <CChartLine
               className="mt-3 mx-3"
@@ -326,28 +338,32 @@ const WidgetsDropdown = () => {
           className="mb-4"
           color="secondary"
           value={
-            <>
+            <div style={{display:"flex", width:"195%", justifyContent:"space-between"}} className="stupidFuckingReact">
+              <div>
               {tdsData.slice(-1)}{' '}
-              <span className="fs-6 fw-normal">
-                ({tdsChange}%
-                {tdsChange > 0.0 ? <CIcon icon={cilArrowTop} /> : <CIcon icon={cilArrowBottom} />})
-              </span>
-            </>
+              </div>
+              <div className="fs-6 fw-normal">
+                Change: {tdsChange}%
+                  {tdsChange > 0.0 ? <CIcon icon={cilArrowTop} /> : <CIcon icon={cilArrowBottom} />}
+                <br></br>
+                Avg: {avg(tdsChange).toFixed(3)}
+              </div>
+            </div>
           }
           title="TDS"
-          action={
-            <CDropdown alignment="end">
-              <CDropdownToggle color="transparent" caret={false} className="p-0">
-                <CIcon icon={cilOptions} className="text-high-emphasis-inverse" />
-              </CDropdownToggle>
-              <CDropdownMenu>
-                <CDropdownItem>Action</CDropdownItem>
-                <CDropdownItem>Another action</CDropdownItem>
-                <CDropdownItem>Something else here...</CDropdownItem>
-                <CDropdownItem disabled>Disabled action</CDropdownItem>
-              </CDropdownMenu>
-            </CDropdown>
-          }
+          // action={
+          //   <CDropdown alignment="end">
+          //     <CDropdownToggle color="transparent" caret={false} className="p-0">
+          //       <CIcon icon={cilOptions} className="text-high-emphasis-inverse" />
+          //     </CDropdownToggle>
+          //     <CDropdownMenu>
+          //       <CDropdownItem>Action</CDropdownItem>
+          //       <CDropdownItem>Another action</CDropdownItem>
+          //       <CDropdownItem>Something else here...</CDropdownItem>
+          //       <CDropdownItem disabled>Disabled action</CDropdownItem>
+          //     </CDropdownMenu>
+          //   </CDropdown>
+          // }
           chart={
             <CChartLine
               className="mt-3 mx-3"
@@ -414,28 +430,32 @@ const WidgetsDropdown = () => {
           className="mb-4"
           color="warning"
           value={
-            <>
-              {pHData.slice(-1)}{' '}
-              <span className="fs-6 fw-normal">
-                ({pHChange}%
-                {pHChange > 0.0 ? <CIcon icon={cilArrowTop} /> : <CIcon icon={cilArrowBottom} />})
-              </span>
-            </>
+            <div style={{display:"flex", width:"175%", justifyContent:"space-between"}} className="stupidFuckingReact">
+              <div>
+                {Number(pHData[pHData.length - 1]) === pHData[pHData.length - 1] && pHData[pHData.length - 1] % 1 !== 0 > 0 ? pHData[pHData.length - 1].toFixed(3) : 0}{' '}
+              </div>
+              <div className="fs-6 fw-normal">
+                Change: {pHChange}%
+                {pHChange > 0.0 ? <CIcon icon={cilArrowTop} /> : <CIcon icon={cilArrowBottom} />}
+                <br></br>
+                Avg: {avg(pHData).toFixed(3)}
+              </div>
+            </div>
           }
           title="pH"
-          action={
-            <CDropdown alignment="end">
-              <CDropdownToggle color="transparent" caret={false} className="p-0">
-                <CIcon icon={cilOptions} className="text-high-emphasis-inverse" />
-              </CDropdownToggle>
-              <CDropdownMenu>
-                <CDropdownItem>Action</CDropdownItem>
-                <CDropdownItem>Another action</CDropdownItem>
-                <CDropdownItem>Something else here...</CDropdownItem>
-                <CDropdownItem disabled>Disabled action</CDropdownItem>
-              </CDropdownMenu>
-            </CDropdown>
-          }
+          // action={
+          //   <CDropdown alignment="end">
+          //     <CDropdownToggle color="transparent" caret={false} className="p-0">
+          //       <CIcon icon={cilOptions} className="text-high-emphasis-inverse" />
+          //     </CDropdownToggle>
+          //     <CDropdownMenu>
+          //       <CDropdownItem>Action</CDropdownItem>
+          //       <CDropdownItem>Another action</CDropdownItem>
+          //       <CDropdownItem>Something else here...</CDropdownItem>
+          //       <CDropdownItem disabled>Disabled action</CDropdownItem>
+          //     </CDropdownMenu>
+          //   </CDropdown>
+          // }
           chart={
             <CChartLine
               className="mt-3 mx-3"

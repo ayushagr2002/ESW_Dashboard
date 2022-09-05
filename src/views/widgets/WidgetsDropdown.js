@@ -333,9 +333,9 @@ const WidgetsDropdown = () => {
           className="mb-4"
           color="secondary"
           value={
-            <div style={{display:"flex", width:"195%", justifyContent:"space-between"}} className="stupidFuckingReact">
+            <div style={{display:"flex", width:"140%", justifyContent:"space-between"}} className="stupidFuckingReact">
               <div>
-              {tdsData.slice(-1)}{' '}
+              {tdsData.slice(-1)}{' ppm'}
               </div>
               <div className="fs-6 fw-normal">
                 Change: {tdsChange}%

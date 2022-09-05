@@ -1,4 +1,6 @@
-import React from 'react'
+import * as React from 'react';
+import IconButton from '@mui/material/IconButton';
+import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import { useState, useEffect } from 'react'
 import {
   CAvatar,
@@ -18,6 +20,14 @@ import {
   CTableHeaderCell,
   CTableRow,
 } from '@coreui/react'
+
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 import { CChartLine } from '@coreui/react-chartjs'
 import { getStyle, hexToRgba } from '@coreui/utils'
 import CIcon from '@coreui/icons-react'
@@ -62,6 +72,10 @@ import WidgetsDropdown from '../widgets/WidgetsDropdown'
 import DateTimeRangePicker from '@wojtekmaj/react-datetimerange-picker'
 import { CSVLink, CSVDownload } from 'react-csv'
 
+const firebase = require("firebase");
+// Required for side-effects
+require("firebase/firestore");
+
 const Dashboard = () => {
   const random = (min, max) => Math.floor(Math.random() * (max - min + 1) + min)
 
@@ -75,6 +89,23 @@ const Dashboard = () => {
   const [curTab, setCurTab] = useState('Temperature')
   const [dateTimeValue, setDateTimeValue] = useState([new Date(), new Date()])
   const [filterData, setFilterData] = useState([])
+
+  const [open, setOpen] = React.useState(false);
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const handleAddAndClose = () => {
+    let form = document.getElementById('EmailSubscription')
+    let email = form.value
+    console.log(email)
+    setOpen(false);
+  };
 
   const fields = [
     { key: 'Created At', _style: { width: '20%' } },
@@ -250,7 +281,6 @@ const Dashboard = () => {
   }
 
   const handleGetData = async () => {
-    console.log(dateTimeValue[0])
     var startYear = dateTimeValue[0].getUTCFullYear().toString()
     var startMonth = (dateTimeValue[0].getUTCMonth() + 1).toString().padStart(2, '0')
     var startDay = dateTimeValue[0].getUTCDate().toString().padStart(2, '0')
@@ -408,6 +438,31 @@ const Dashboard = () => {
       </CCard>
       <br />
       <br />
+      <IconButton color="primary" aria-label="subscribe to mailing list" onClick={handleClickOpen} style={{position:"fixed", right:"1vw", bottom:"1vh"}}>
+        <MailOutlineIcon />
+      </IconButton>
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>Subscribe</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            To subscribe to this website, please enter your email address here. We
+            will send updates occasionally.
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="EmailSubscription"
+            label="Email Address"
+            type="email"
+            fullWidth
+            variant="standard"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleAddAndClose}>Subscribe</Button>
+        </DialogActions>
+      </Dialog>
     </>
   )
 }

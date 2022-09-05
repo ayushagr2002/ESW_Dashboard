@@ -30,43 +30,40 @@ const WidgetsDropdown = () => {
     return sum / data.length;
   }
 
-  // Get The Last 10 Sensor Values every 5 minutes
-  useEffect(() => {
-    const getData = async () => {
-      // Fetch Data from thingspeak
-      const response = await fetch(
-        'https://api.thingspeak.com/channels/1834719/feeds.json?results=10',
-      )
-      const body = await response.json()
-      console.log(body)
-      // console.log(response)
-      var tempDataCur = []
-      var turbidityDataCur = []
-      var tdsDataCur = []
-      var pHDataCur = []
-      var timeDataCur = []
-      body.feeds.map((data) => {
-        tempDataCur.push(data.field1)
-        turbidityDataCur.push(data.field2)
-        tdsDataCur.push(data.field3)
-        pHDataCur.push(data.field4)
-        var curdate = new Date(data.created_at)
-        timeDataCur.push(curdate.toLocaleTimeString())
-      })
-      // Set the Corressponding fields
-      console.log(tempDataCur)
-      setTempData([...tempDataCur])
-      setTurbidityData([...turbidityDataCur])
-      setTdsData([...tdsDataCur])
-      setPHData([...pHDataCur])
-      setTimeLabels([...timeDataCur])
-      // console.log(tempDataCur)
-    }
-    const interval = setInterval(() => {
-      getData()
-    }, 60000)
-    return () => clearInterval(interval)
-  }, [])
+  // Get The Last 15 Sensor Values every 5 minutes
+  // useEffect(() => {
+  //   const getData = async () => {
+  //     // Fetch Data from thingspeak
+  //     const response = await fetch(
+  //       'https://api.thingspeak.com/channels/1834719/feeds.json?results=15',
+  //     )
+  //     const body = await response.json()
+  //     console.log(body)
+  //     var tempDataCur = []
+  //     var turbidityDataCur = []
+  //     var tdsDataCur = []
+  //     var pHDataCur = []
+  //     var timeDataCur = []
+  //     body.feeds.map((data) => {
+  //       tempDataCur.push(data.field1)
+  //       turbidityDataCur.push(data.field2)
+  //       tdsDataCur.push(data.field3)
+  //       pHDataCur.push(data.field4)
+  //       var curdate = new Date(data.created_at)
+  //       timeDataCur.push(curdate.toLocaleTimeString())
+  //     })
+  //     // Set the Corressponding fields
+  //     setTempData([...tempDataCur])
+  //     setTurbidityData([...turbidityDataCur])
+  //     setTdsData([...tdsDataCur])
+  //     setPHData([...pHDataCur])
+  //     setTimeLabels([...timeDataCur])
+  //   }
+  //   const interval = setInterval(() => {
+  //     getData()
+  //   }, 60000)
+  //   return () => clearInterval(interval)
+  // }, [])
 
   useEffect(() => {
     const getData = async () => {
@@ -76,7 +73,6 @@ const WidgetsDropdown = () => {
       )
       const body = await response.json()
       console.log(body)
-      // console.log(response)
       var tempDataCur = []
       var turbidityDataCur = []
       var tdsDataCur = []
@@ -91,7 +87,6 @@ const WidgetsDropdown = () => {
         timeDataCur.push(curdate.toLocaleTimeString())
       })
       // Set the Corressponding fields
-      console.log(tempDataCur)
       setTempData([...tempDataCur])
       setTurbidityData([...turbidityDataCur])
       setTdsData([...tdsDataCur])

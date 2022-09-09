@@ -72,6 +72,7 @@ import WidgetsDropdown from "../widgets/WidgetsDropdown";
 import DateTimeRangePicker from "@wojtekmaj/react-datetimerange-picker";
 import { CSVLink, CSVDownload } from "react-csv";
 import Swal from "sweetalert2";
+import Plot from "react-plotly.js";
 
 const firebase = require("firebase");
 // Required for side-effects
@@ -565,7 +566,7 @@ const Dashboard = () => {
             </CCol>
           </CRow>
           <CChartLine
-            style={{ height: "300px", marginTop: "40px" }}
+            style={{ height: "350px", marginTop: "40px" }}
             data={{
               labels: timeLabels,
               datasets: getDataSet(),
@@ -595,6 +596,7 @@ const Dashboard = () => {
                   hoverRadius: 4,
                   hoverBorderWidth: 3,
                 },
+                xlabel: "Time",
               },
             }}
           />
@@ -701,7 +703,7 @@ const Dashboard = () => {
             </CCol>
           </CRow>
           <CChartLine
-            style={{ height: "300px", marginTop: "40px" }}
+            style={{ height: "350px", marginTop: "40px" }}
             data={{
               labels: pastTimeLabels,
               datasets: getPastDataSet(),

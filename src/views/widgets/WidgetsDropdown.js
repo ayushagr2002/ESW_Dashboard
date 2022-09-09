@@ -45,10 +45,10 @@ const WidgetsDropdown = () => {
       var pHDataCur = []
       var timeDataCur = []
       body.feeds.map((data) => {
-        tempDataCur.push(data.field1)
-        turbidityDataCur.push(data.field2)
-        tdsDataCur.push(data.field3)
-        pHDataCur.push(data.field4)
+        tempDataCur.push(parseFloat(data.field1))
+        turbidityDataCur.push(parseInt(data.field2))
+        tdsDataCur.push(parseInt(data.field3))
+        pHDataCur.push(parseFloat(data.field4))
         var curdate = new Date(data.created_at)
         timeDataCur.push(curdate.toLocaleTimeString())
       })

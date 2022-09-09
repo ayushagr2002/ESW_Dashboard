@@ -99,6 +99,7 @@ const Dashboard = () => {
   const [curTab, setCurTab] = useState("Temperature");
   const [pastDataTab, setPastDataTab] = useState("Temperature");
   const [dateTimeValue, setDateTimeValue] = useState([new Date(), new Date()]);
+  const [alertDateTime, setAlertDateTime] = useState([new Date(), new Date()]);
   const [filterData, setFilterData] = useState([]);
   const [pastTimeLabels, setPastTimeLabels] = useState([]);
   const [alertData, setAlertData] = useState([]);
@@ -499,8 +500,55 @@ const Dashboard = () => {
   };
 
   const getAlertData = async () => {
+    var startYear = alertDateTime[0].getUTCFullYear().toString();
+    var startMonth = (alertDateTime[0].getUTCMonth() + 1)
+      .toString()
+      .padStart(2, "0");
+    var startDay = alertDateTime[0].getUTCDate().toString().padStart(2, "0");
+    var startHour = alertDateTime[0].getUTCHours().toString().padStart(2, "0");
+    var startMinute = alertDateTime[0]
+      .getUTCMinutes()
+      .toString()
+      .padStart(2, "0");
+    var startTimeString =
+      startYear +
+      "-" +
+      startMonth +
+      "-" +
+      startDay +
+      "%20" +
+      startHour +
+      ":" +
+      startMinute +
+      ":00";
+    console.log(startTimeString);
+    var endYear = alertDateTime[1].getUTCFullYear().toString();
+    var endMonth = (alertDateTime[1].getUTCMonth() + 1)
+      .toString()
+      .padStart(2, "0");
+    var endDay = alertDateTime[1].getUTCDate().toString().padStart(2, "0");
+    var endHour = alertDateTime[1].getUTCHours().toString().padStart(2, "0");
+    var endMinute = alertDateTime[1]
+      .getUTCMinutes()
+      .toString()
+      .padStart(2, "0");
+    var endTimeString =
+      endYear +
+      "-" +
+      endMonth +
+      "-" +
+      endDay +
+      "%20" +
+      endHour +
+      ":" +
+      endMinute +
+      ":00";
+    console.log(endTimeString);
     const response = await fetch(
-      "https://api.thingspeak.com/channels/1849193/fields/1.json?results=2"
+      "https://api.thingspeak.com/channels/1849193/feeds.json?start=" +
+        startTimeString +
+        "&end=" +
+        endTimeString
     );
     const body = await response.json();
     console.log(body);
@@ -518,6 +566,11 @@ const Dashboard = () => {
     }
     setAlertData([...data]);
   };
+
+  const clearAlertData = () => {
+    setAlertData([]);
+    setAlertDateTime([new Date(), new Date()]);
+  }
 
   const getThreshold = (sensor, value) => {
     if (sensor == "temperature") {
@@ -612,8 +665,13 @@ const Dashboard = () => {
               <div className="small text-medium-emphasis">
                 Select Date & Time Range
               </div>
+              <DateTimeRangePicker
+                value={alertDateTime}
+                onChange={setAlertDateTime}
+              />
             </CCol>
           </CRow>
+          <br />
           <CRow>
             <CCol sm={1}>
               <CButton color="primary" size="sm" onClick={getAlertData}>
@@ -626,6 +684,11 @@ const Dashboard = () => {
                   Download as CSV
                 </CButton>
               </CSVLink>
+            </CCol>
+            <CCol sm={2}>
+              <CButton color="primary" size="sm" onClick={clearAlertData}>
+                Clear 
+              </CButton>
             </CCol>
           </CRow>
           <Table>

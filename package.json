@@ -17,7 +17,8 @@
     "changelog": "auto-changelog --starting-version 4.4.0 --commit-limit false --hide-credit",
     "eject": "react-scripts eject",
     "lint": "eslint \"src/**/*.js\"",
-    "start": "react-scripts start",
+    "start": "serve -s build",
+    "heroku-postbuild": "npm run build",
     "test": "react-scripts test",
     "test:cov": "npm test -- --coverage --watchAll=false",
     "test:debug": "react-scripts --inspect-brk test --runInBand"
@@ -53,6 +54,7 @@
     "react-router-dom": "^6.3.0",
     "redux": "4.2.0",
     "rsuite": "^5.17.1",
+    "serve": "^14.0.1",
     "simplebar-react": "^2.4.1",
     "sweetalert2": "^11.4.29"
   },

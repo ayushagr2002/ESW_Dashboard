@@ -130,26 +130,44 @@ const Dashboard = () => {
 
   useEffect(() => {
     const getData = async () => {
-      // Fetch Data from thingspeak
+      function decode(m, p) {
+        if (p == 0) return 1;
+        else return (m * decode(m, p - 1)) % 145;
+      }
+
       const response = await fetch(
-        "https://api.thingspeak.com/channels/1834719/feeds.json?results=15"
+        "https://api.thingspeak.com/channels/1871985/fields/1.json?api_key=FS2364FYZBMUJQ2U&results=15"
       );
-      const body = await response.json();
-      //console.log(body)
-      // console.log(response)
+      const rawData = await response.json();
+
       var tempDataCur = [];
       var turbidityDataCur = [];
       var tdsDataCur = [];
       var pHDataCur = [];
       var timeDataCur = [];
-      body.feeds.map((data) => {
-        tempDataCur.push(data.field1);
-        turbidityDataCur.push(data.field2);
-        tdsDataCur.push(data.field3);
-        pHDataCur.push(data.field4);
-        var curdate = new Date(data.created_at);
+
+      console.log(rawData);
+
+      for(let j = 0; j < rawData.feeds.length; j++) {
+        let encrypt = JSON.parse(JSON.parse(rawData.feeds[j].field1));
+        let strData = "";
+
+        let d = 75;
+        let n = 145;
+
+        for (let i = 0; i < encrypt.length; i++) {
+          let code = encrypt[i];
+          strData += String.fromCharCode(decode(code, d));
+        }
+        let decrypted = JSON.parse(strData);
+
+        tempDataCur.push(decrypted[0]);
+        turbidityDataCur.push(decrypted[1]);
+        tdsDataCur.push(decrypted[2]);
+        pHDataCur.push(decrypted[3]);
+        var curdate = new Date(rawData.feeds[j].created_at);
         timeDataCur.push(curdate.toLocaleTimeString());
-      });
+      }
       // Set the Corressponding fields
       //console.log(tempDataCur)
       setTempData([...tempDataCur]);
@@ -157,8 +175,6 @@ const Dashboard = () => {
       setTdsData([...tdsDataCur]);
       setPHData([...pHDataCur]);
       setTimeLabels([...timeDataCur]);
-      //console.log(timeDataCur[0].getHours())
-      //console.log(timeDataCur)
       var alertData = {};
       if (tempDataCur.slice(-1) < TEMP_THRESHOLD_LOW) {
         alertData.temperature = tempDataCur.slice(-1);
@@ -252,27 +268,44 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    const getData = async () => {
-      // Fetch Data from thingspeak
+    const pullAndDecodeData = async () => {
+
+      function decode(m, p) {
+        if (p == 0) return 1;
+        else return (m * decode(m, p - 1)) % 145;
+      }
+
       const response = await fetch(
-        "https://api.thingspeak.com/channels/1834719/feeds.json?results=15"
+        "https://api.thingspeak.com/channels/1871985/fields/1.json?api_key=FS2364FYZBMUJQ2U&results=15"
       );
-      const body = await response.json();
-      //console.log(body)
-      // console.log(response)
+      const rawData = await response.json();
+
       var tempDataCur = [];
       var turbidityDataCur = [];
       var tdsDataCur = [];
       var pHDataCur = [];
       var timeDataCur = [];
-      body.feeds.map((data) => {
-        tempDataCur.push(data.field1);
-        turbidityDataCur.push(data.field2);
-        tdsDataCur.push(data.field3);
-        pHDataCur.push(data.field4);
-        var curdate = new Date(data.created_at);
+
+      for(let j = 0; j < rawData.feeds.length; j++) {
+        let encrypt = JSON.parse(JSON.parse(rawData.feeds[j].field1));
+        let strData = "";
+
+        let d = 75;
+        let n = 145;
+
+        for (let i = 0; i < encrypt.length; i++) {
+          let code = encrypt[i];
+          strData += String.fromCharCode(decode(code, d));
+        }
+        let decrypted = JSON.parse(strData);
+
+        tempDataCur.push(decrypted[0]);
+        turbidityDataCur.push(decrypted[1]);
+        tdsDataCur.push(decrypted[2]);
+        pHDataCur.push(decrypted[3]);
+        var curdate = new Date(rawData.feeds[j].created_at);
         timeDataCur.push(curdate.toLocaleTimeString());
-      });
+      }
       // Set the Corressponding fields
       //console.log(tempDataCur)
       setTempData([...tempDataCur]);
@@ -280,10 +313,8 @@ const Dashboard = () => {
       setTdsData([...tdsDataCur]);
       setPHData([...pHDataCur]);
       setTimeLabels([...timeDataCur]);
-      //console.log(timeDataCur[0].getHours())
-      //console.log(timeDataCur)
     };
-    getData();
+    pullAndDecodeData();
   }, []);
 
   const getDataSet = () => {
@@ -567,11 +598,11 @@ const Dashboard = () => {
     }
     setAlertData([...data]);
     // const tempResponse = await fetch(
-    //   "http://esw-onem2m.iiit.ac.in:443/~/in-cse/in-name/Team-8/Node-1/Data/la", 
+    //   "http://esw-onem2m.iiit.ac.in:443/~/in-cse/in-name/Team-8/Node-1/Data/la",
     //   {
     //     method: "GET",
     //     headers: {
-    //       "Access-Control-Allow-Origin" : "http://esw-onem2m.iiit.ac.in:443/", 
+    //       "Access-Control-Allow-Origin" : "http://esw-onem2m.iiit.ac.in:443/",
     //       "X-M2M-Origin" : "1uVxsR:qYf8QP",
     //       // "mode" : "cors",
     //       crossDomain:true
@@ -585,7 +616,7 @@ const Dashboard = () => {
   const clearAlertData = () => {
     setAlertData([]);
     setAlertDateTime([new Date(), new Date()]);
-  }
+  };
 
   const getThreshold = (sensor, value) => {
     if (sensor == "temperature") {
@@ -702,7 +733,7 @@ const Dashboard = () => {
             </CCol>
             <CCol sm={2}>
               <CButton color="primary" size="sm" onClick={clearAlertData}>
-                Clear 
+                Clear
               </CButton>
             </CCol>
           </CRow>

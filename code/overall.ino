@@ -1,25 +1,40 @@
 #include <SPI.h>
 #include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SH1106.h>
 #include <ThingSpeak.h>
 #include <WiFi.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#include <tinyECC.h>
-
-// oneM2M Libraries
 #include <HTTPClient.h>
 
-// HTTPClient http;
+// RSA Encryption
 
-// oneM2M IP Address
-String  CSE_IP      = "192.168.82.140"; 
+int p = 5;
+int q = 29;
 
-// oneM2M : CSE params
-int     CSE_HTTP_PORT   = 8080;
-String  CSE_NAME        = "in-name";
-String  OM2M_ORIGIN_ADMIN  = "admin:admin";
+long int n;
+
+long int phi;
+
+long int e;
+
+long int d;
+
+long int power(long long int x, long long int p) {
+  if (p == 0) return 1;
+  if (p == 1) return x;
+  if (p % 2 == 0) return power(x * x, p / 2);
+  return x * power(x * x, (p - 1) / 2);
+}
+
+long int encrypt(int m) {
+  return (long int)pow(m, e) % n;
+}
+
+char decrypt(long int m) {
+  return (char)(power(m, d) % n);
+}
+
+//
 
 #define OLED_SDA 21
 #define OLED_SCL 22
@@ -31,11 +46,18 @@ String  OM2M_ORIGIN_ADMIN  = "admin:admin";
 //Adafruit_SH1106 display(21, 22);
 WiFiClient client;
 const int sensorPin = 34;
-char ssid[]="Redmi Note 10S";
-char password[] = "Ayush123" ;
+char ssid[]="Konosuba";
+char password[] = "Kazumaaa" ;
+//char ssid[]="ayush-Mi-NoteBook-14";
+//char password[] = "Ayush123" ;
 unsigned long myChannelNumber = 1834719;
 const char *myWriteAPIKey = "Y9FQO0I5SA4WKYQA";
 const char *myReadAPIKey = "6SUM6F8C3K2L9KF1";
+
+unsigned long encryptChannel = 1871985;
+// unsigned long encryptChannel = 1871121;
+const char *encryptWriteAPIKey = "UQKUBJ1DF0DI94B8";
+// const char *encryptWriteAPIKey = "6FD0B1X1XVJJW42O";
 
 const int potPin = A0;
 float ph;
@@ -55,42 +77,29 @@ OneWire oneWire(TempPin);
 // Pass the OneWire Instance to the Dallas Temperature Sensor
 DallasTemperature tempSensor(&oneWire); 
 
+String Teamid = "Team-8";
+String cnt = "Node-1";
+String server = "http://esw-onem2m.iiit.ac.in:443/~/in-cse/in-name/Team-8/Node-1/Data";
+
+void createCI(String& val){
+  // add the lines in step 3-6 inside this function
   HTTPClient http;
-void doPOST(String url, int ty, String rep) {
-  http.begin("http://" + String(CSE_IP) + ":" + String(CSE_HTTP_PORT) + "/~/in-cse/in-name/" + url);
+  http.begin(server);
+  
+  http.addHeader("X-M2M-Origin", "1uVxsR:qYf8QP");// username:password
+  http.addHeader("Content-Type", "application/json;ty=4");
 
-  http.addHeader("X-M2M-Origin", OM2M_ORIGIN_ADMIN);
-  http.addHeader("Content-Type", "application/json;ty=" + String(ty));
-  http.addHeader("Content-Length", String(rep.length()));
+  int code = http.POST("{\"m2m:cin\": {\"cnf\":\"application/json\",\"con\": \"" + String(val) + "\"}}");
 
-  // String req_data = "{\"m2m:cin\": {\"con\": \"" + data + "\",\"cnf\": \"" + description + "\"}}";
-  // Serial.println(req_data);
-  Serial.println(rep);
-
-  int code = http.POST(rep);
-  if(code > 0)
-  {
-    Serial.println(code);
-    Serial.println("Successfully added the reading");
-  }
-  else
-  {
-    Serial.println(code);
-    Serial.println("Failed to add the reading");
+  Serial.println(code);
+  if (code == -1) {
+    Serial.println("UNABLE TO CONNECT TO THE SERVER");
   }
   http.end();
 }
 
-String createCI(String ae, String cnt1, String cnt2, String ciContent) {
-    String ciRepresentation =
-        "{\"m2m:cin\": {"
-        "\"con\":\"" + ciContent + "\""
-        "}}";
-    doPOST(ae + "/" + cnt1 + "/" + cnt2, 4, ciRepresentation);
-    return ciRepresentation;
-}
-
 void setup() {
+  // put your setup code here, to run once:
   Serial.begin(9600);
   pinMode(potPin, INPUT);
   Serial.println("Started");
@@ -98,96 +107,141 @@ void setup() {
   delay(5000);
   while(WiFi.status() != WL_CONNECTED)
   {
-    delay(1000);
+    delay(5000);
     Serial.print(".");
+    WiFi.begin(ssid,password);
   }
   Serial.println("WiFi connected");  
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
   WiFi.mode(WIFI_STA);
   ThingSpeak.begin(client);
-}
 
+  // RSA Encryption
+  n = p * q;
+  phi = (p - 1) * (q - 1);
+  e = 3;
+  d = 75;
+}
+//M
 int getTurbidity()
 {
   int tds_sensor_value = analogRead(sensorPin);
-  Serial.print("Sensor Value: ");
+  Serial.print("turbidity Sensor Value: ");
   Serial.println(tds_sensor_value);
-  int turbidity = map(tds_sensor_value, 700, 3000, 100, 0);
-  // Serial.print("Turbidity :");
-  // Serial.println(turbidity);
+  int turbidity = map(tds_sensor_value, 0, 1800, 100, 0);
+  Serial.print("Turbidity :");
+  Serial.println(turbidity);
   return turbidity;
 }
 
 float getTDS()
 {
    float tdsValue = 0.0;
-  averageVoltage = analogRead(TdsSensorPin);
-  averageVoltage = averageVoltage * (float)VREF / 4096.0;
-  
-  //temperature compensation formula: fFinalResult(25^C) = fFinalResult(current)/(1.0+0.02*(fTP-25.0)); 
-  float compensationCoefficient = 1.0+0.02*(temperature-25.0);
-  //temperature compensation
-  float compensationVoltage=averageVoltage/compensationCoefficient;
-        
-  //convert voltage value to tds value
-  tdsValue  = (133.42*compensationVoltage*compensationVoltage*compensationVoltage - 255.86*compensationVoltage*compensationVoltage + 857.39*compensationVoltage)*0.5;
-  return tdsValue;
+      int n = 5;
+      averageVoltage = 0;
+      for(int i = 0; i < n; i++) 
+      {
+        averageVoltage += analogRead(TdsSensorPin);
+        delay(500);
+      }
+      averageVoltage /= n;
+      Serial.print("TDS pin");
+      Serial.println(averageVoltage);
+      averageVoltage = averageVoltage * (float)VREF / 4096.0;
+      
+      //temperature compensation formula: fFinalResult(25^C) = fFinalResult(current)/(1.0+0.02*(fTP-25.0)); 
+      float compensationCoefficient = 1.0+0.02*(temperature - 24.0);
+      //temperature compensation
+      float compensationVoltage=averageVoltage/compensationCoefficient;
+//      Serial.print("comp volt : ");
+//      Serial.println(compensationVoltage);
+      //convert voltage value to tds value
+      tdsValue  = (133.42*compensationVoltage*compensationVoltage*compensationVoltage - 252.86*compensationVoltage*compensationVoltage + 861.39*compensationVoltage);
+      
+      return tdsValue;
 }
 
 float getTemperature()
 {
-  tempSensor.requestTemperatures();
-  double temp = tempSensor.getTempCByIndex(0);
-  return temp;
+    tempSensor.requestTemperatures();
+    double temp = tempSensor.getTempCByIndex(0);
+    return temp;
 }
 
 float getPH()
 {
-  Value= analogRead(potPin);
-  // Serial.print(Value);
-  // Serial.print(" | ");
-  float voltage=Value*(3.3/4095.0);
-  Serial.println(voltage); 
-  ph = (3.3*voltage);
-  // Serial.println(ph);
-  // delay(1500);
-  return ph;
+    Value= analogRead(potPin);
+    Serial.print("val");
+    Serial.println(Value);
+    Serial.print(" | ");
+      float voltage=Value*(3.4/4095.0);
+      Serial.print("PH volt"); 
+      Serial.println(voltage);
+      ph = (3.6*voltage);
+      Serial.print("PH");
+      Serial.println(ph);
+//    delay(1500);
+    return ph;
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  delay(5000);
+  // delay(180000);
+delay(2000);
+  if(WiFi.status() != WL_CONNECTED)
+  {
+    WiFi.begin(ssid,password);
+    while(WiFi.status() != WL_CONNECTED)
+    {
+      delay(5000);
+      Serial.print(".");
+      WiFi.begin(ssid,password);
+    }
+  } 
   float temp = getTemperature();
   int TDS = getTDS();
   int turbidity = getTurbidity();
   float ph = getPH();
   Serial.print("Temperature: ");
-  Serial.println(temp);+
+  Serial.println(temp);
   Serial.print("TDS: ");
   Serial.println(TDS);
-  Serial.print("Turbidity: ");
-  Serial.println(turbidity);
-  Serial.print("pH: ");
-  Serial.println(ph);
+//  Serial.print("Turbidity: ");
+//  Serial.println(turbidity);
+//  Serial.print("pH: ");
+//  Serial.println(ph);
+  // ThingSpeak.setField(1, temp);
+  // ThingSpeak.setField(2, turbidity);
+  // ThingSpeak.setField(3, TDS);
+  // ThingSpeak.setField(4, ph);
+  String dt = "[" + String((float)((int)(temp * 100)) / 100) + "," + String(turbidity) + "," + String(TDS) + "," + String((float)((int)(ph * 100)) / 100) + "]";
+  char str[128];
+  dt.toCharArray(str, 128);
 
-  // Thingspeak upload
-  ThingSpeak.setField(1, temp);
-  ThingSpeak.setField(2, turbidity);
-  ThingSpeak.setField(3, TDS);
-  ThingSpeak.setField(4, ph);
-  ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
-  delay(5000);
+  char encrypted[128];
+  String encryptedString = "[";
 
-  // float temp = 27;
-  // int TDS = 100;
-  // int turbidity = 50;
-  // float ph = 7.5;
+  for(int i = 0; i < dt.length(); i++)
+  {
+    encrypted[i] = encrypt(str[i]);
+    if(i != dt.length() - 1)
+    {
+      encryptedString.concat((int)encrypted[i]);
+      encryptedString.concat(",");
+    }
+    else
+    {
+      encryptedString.concat((int)encrypted[i]);
+    }
+  }
+  encryptedString.concat("]");
 
-  // // oneM2M upload
-  tinyECC e;
-  e.plaintext = String(temp) + "," + String(turbidity) + "," + String(TDS) + "," + String(ph);
-  e.encrypt();
-  String result = createCI("Water-Quality", "Test-Node", "Encrypt", "[" + e.ciphertext + "]");
-  result = createCI("Water-Quality", "Test-Node", "Data", "[" + String(temp) + "," + String(turbidity) + "," + String(TDS) + "," + String(ph) + "]");
+  int x = ThingSpeak.writeField(encryptChannel, 1, encryptedString, encryptWriteAPIKey);
+  Serial.print("Error code: ");
+  Serial.println(x);
+  Serial.println(encryptedString.length());
+  Serial.println(encrypted);
+  Serial.println(encryptedString);
+  createCI(dt);
 }

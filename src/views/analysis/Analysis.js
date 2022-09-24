@@ -97,6 +97,11 @@ ChartJS.register(
   LineElement
 );
 
+function decode(m, p) {
+  if (p == 0) return 1;
+  else return (m * decode(m, p - 1)) % 145;
+}
+
 const Analysis = () => {
   const [avgTempValues, setAvgTempValues] = useState([]);
   const [avgTurbValues, setAvgTurbValues] = useState([]);
@@ -160,27 +165,37 @@ const Analysis = () => {
           ":00";
         
         const response = await fetch(
-          "https://api.thingspeak.com/channels/1834719/feeds.json?start=" +
+          "https://api.thingspeak.com/channels/1871985/feeds.json?start=" +
             startTimeString +
             "&end=" +
             endTimeString
         );
-        const body = await response.json();
+        const rawData = await response.json();
         var tempSum = 0.0;
         var turbSum = 0.0;
         var tdsSum = 0.0;
         var phSum = 0.0;
-        body.feeds.map((data) => {
-          tempSum += parseFloat(data.field1);
-          turbSum += parseFloat(data.field2);
-          tdsSum += parseFloat(data.field3);
-          phSum += parseFloat(data.field4);
-        });
+        for (let j = 0; j < rawData.feeds.length; j++) {
+          let encrypt = JSON.parse(JSON.parse(rawData.feeds[j].field1));
+          let strData = "";
+  
+          let d = 75;
+  
+          for (let i = 0; i < encrypt.length; i++) {
+            let code = encrypt[i];
+            strData += String.fromCharCode(decode(code, d));
+          }
+          let decrypted = JSON.parse(strData);
+          tempSum += decrypted[0];
+          turbSum += decrypted[1];
+          tdsSum += decrypted[2];
+          phSum += decrypted[3];
+        }
         // console.log(tempSum)
-        AvgTemperatureValues.push(tempSum / body.feeds.length);
-        AvgTurbidityValues.push(turbSum / body.feeds.length);
-        AvgTDSValues.push(tdsSum / body.feeds.length);
-        AvgPhValues.push(phSum / body.feeds.length);
+        AvgTemperatureValues.push(tempSum / rawData.feeds.length);
+        AvgTurbidityValues.push(turbSum / rawData.feeds.length);
+        AvgTDSValues.push(tdsSum / rawData.feeds.length);
+        AvgPhValues.push(phSum / rawData.feeds.length);
         startDate.setDate(startDate.getDate() + 1);
         endDate.setDate(endDate.getDate() + 1);
       }
@@ -236,29 +251,38 @@ const Analysis = () => {
       console.log(endTimeString);
       HourLabels.push(startHour+'-'+endHour);
       const response = await fetch(
-        "https://api.thingspeak.com/channels/1834719/feeds.json?start=" +
+        "https://api.thingspeak.com/channels/1871985/feeds.json?start=" +
           startTimeString +
           "&end=" +
           endTimeString
       );
-      const body = await response.json();
-      console.log(body)
+      const rawData = await response.json();
       var tempSum = 0.0;
       var turbSum = 0.0;
       var tdsSum = 0.0;
       var phSum = 0.0;
-      body.feeds.map((data) => {
-        tempSum += parseFloat(data.field1);
-        turbSum += parseFloat(data.field2);
-        tdsSum += parseFloat(data.field3);
-        phSum += parseFloat(data.field4);
-      });
+      for (let j = 0; j < rawData.feeds.length; j++) {
+        let encrypt = JSON.parse(JSON.parse(rawData.feeds[j].field1));
+        let strData = "";
+
+        let d = 75;
+
+        for (let i = 0; i < encrypt.length; i++) {
+          let code = encrypt[i];
+          strData += String.fromCharCode(decode(code, d));
+        }
+        let decrypted = JSON.parse(strData);
+        tempSum += decrypted[0];
+        turbSum += decrypted[1];
+        tdsSum += decrypted[2];
+        phSum += decrypted[3];
+      }
       // console.log(tempSum)
-      if(body.feeds.length > 0){
-        AvgTemperatureValues.push(tempSum / body.feeds.length);
-        AvgTurbidityValues.push(turbSum / body.feeds.length);
-        AvgTDSValues.push(tdsSum / body.feeds.length);
-        AvgPhValues.push(phSum / body.feeds.length);
+      if(rawData.feeds.length > 0){
+        AvgTemperatureValues.push(tempSum / rawData.feeds.length);
+        AvgTurbidityValues.push(turbSum / rawData.feeds.length);
+        AvgTDSValues.push(tdsSum / rawData.feeds.length);
+        AvgPhValues.push(phSum / rawData.feeds.length);
       }
         else{
             AvgTemperatureValues.push(0);

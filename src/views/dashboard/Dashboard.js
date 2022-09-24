@@ -85,6 +85,11 @@ const PH_THRESHOLD_ALKALI = 9;
 const TEMP_THRESHOLD_HIGH = 30;
 const TEMP_THRESHOLD_LOW = 10;
 
+function decode(m, p) {
+  if (p == 0) return 1;
+  else return (m * decode(m, p - 1)) % 145;
+}
+
 const Dashboard = () => {
   const random = (min, max) =>
     Math.floor(Math.random() * (max - min + 1) + min);
@@ -130,13 +135,8 @@ const Dashboard = () => {
 
   useEffect(() => {
     const getData = async () => {
-      function decode(m, p) {
-        if (p == 0) return 1;
-        else return (m * decode(m, p - 1)) % 145;
-      }
-
       const response = await fetch(
-        "https://api.thingspeak.com/channels/1871985/fields/1.json?api_key=FS2364FYZBMUJQ2U&results=15"
+        "https://api.thingspeak.com/channels/1871985/feeds.json?results=15"
       );
       const rawData = await response.json();
 
@@ -146,14 +146,11 @@ const Dashboard = () => {
       var pHDataCur = [];
       var timeDataCur = [];
 
-      console.log(rawData);
-
-      for(let j = 0; j < rawData.feeds.length; j++) {
+      for (let j = 0; j < rawData.feeds.length; j++) {
         let encrypt = JSON.parse(JSON.parse(rawData.feeds[j].field1));
         let strData = "";
 
         let d = 75;
-        let n = 145;
 
         for (let i = 0; i < encrypt.length; i++) {
           let code = encrypt[i];
@@ -269,14 +266,8 @@ const Dashboard = () => {
 
   useEffect(() => {
     const pullAndDecodeData = async () => {
-
-      function decode(m, p) {
-        if (p == 0) return 1;
-        else return (m * decode(m, p - 1)) % 145;
-      }
-
       const response = await fetch(
-        "https://api.thingspeak.com/channels/1871985/fields/1.json?api_key=FS2364FYZBMUJQ2U&results=15"
+        "https://api.thingspeak.com/channels/1871985/feeds.json?results=15"
       );
       const rawData = await response.json();
 
@@ -286,12 +277,11 @@ const Dashboard = () => {
       var pHDataCur = [];
       var timeDataCur = [];
 
-      for(let j = 0; j < rawData.feeds.length; j++) {
+      for (let j = 0; j < rawData.feeds.length; j++) {
         let encrypt = JSON.parse(JSON.parse(rawData.feeds[j].field1));
         let strData = "";
 
         let d = 75;
-        let n = 145;
 
         for (let i = 0; i < encrypt.length; i++) {
           let code = encrypt[i];
@@ -369,7 +359,7 @@ const Dashboard = () => {
     if (pastDataTab == "Temperature") {
       var tempPastData = [];
       for (var i = 0; i < filterData.length; i++) {
-        tempPastData.push(filterData[i].field1);
+        tempPastData.push(filterData[i][0]);
       }
       console.log(tempPastData);
       return [
@@ -390,7 +380,7 @@ const Dashboard = () => {
           borderColor: "red",
           pointHoverBackgroundColor: getStyle("--cui-info"),
           borderWidth: 2,
-          data: filterData.map((data) => data.field2),
+          data: filterData.map((data) => data[1]),
         },
       ];
     } else if (pastDataTab == "TDS") {
@@ -401,7 +391,7 @@ const Dashboard = () => {
           borderColor: "orange",
           pointHoverBackgroundColor: getStyle("--cui-info"),
           borderWidth: 2,
-          data: filterData.map((data) => data.field3),
+          data: filterData.map((data) => data[2]),
         },
       ];
     } else {
@@ -412,7 +402,7 @@ const Dashboard = () => {
           borderColor: "purple",
           pointHoverBackgroundColor: getStyle("--cui-info"),
           borderWidth: 2,
-          data: filterData.map((data) => data.field4),
+          data: filterData.map((data) => data[3]),
         },
       ];
     }
@@ -508,20 +498,34 @@ const Dashboard = () => {
       ":00";
     console.log(endTimeString);
     const response = await fetch(
-      "https://api.thingspeak.com/channels/1834719/feeds.json?start=" +
+      "https://api.thingspeak.com/channels/1871985/feeds.json?start=" +
         startTimeString +
         "&end=" +
         endTimeString
     );
     var t = [];
-    response.json().then((body) => {
-      console.log(body.feeds);
-      for (var i = 0; i < body.feeds.length; i++) {
-        t.push("");
+    var filter = [];
+
+    const rawData = await response.json();
+
+    for (var j = 0; j < rawData.feeds.length; j++) {
+      let encrypt = JSON.parse(JSON.parse(rawData.feeds[j].field1));
+      let strData = "";
+
+      let d = 75;
+
+      for (let i = 0; i < encrypt.length; i++) {
+        let code = encrypt[i];
+        strData += String.fromCharCode(decode(code, d));
       }
-      setPastTimeLabels(t);
-      setFilterData(body.feeds);
-    });
+      let decrypted = JSON.parse(strData);
+      decrypted.push(rawData.feeds[j].created_at);
+      t.push("");
+      filter.push(decrypted);
+    }
+
+    setPastTimeLabels(t);
+    setFilterData(filter);
     console.log(filterData);
   };
 
@@ -597,20 +601,6 @@ const Dashboard = () => {
       }
     }
     setAlertData([...data]);
-    // const tempResponse = await fetch(
-    //   "http://esw-onem2m.iiit.ac.in:443/~/in-cse/in-name/Team-8/Node-1/Data/la",
-    //   {
-    //     method: "GET",
-    //     headers: {
-    //       "Access-Control-Allow-Origin" : "http://esw-onem2m.iiit.ac.in:443/",
-    //       "X-M2M-Origin" : "1uVxsR:qYf8QP",
-    //       // "mode" : "cors",
-    //       crossDomain:true
-    //     }
-    //   }
-    // )
-    // const body2 = await response.json();
-    // console.log(body2)
   };
 
   const clearAlertData = () => {
@@ -862,12 +852,12 @@ const Dashboard = () => {
             </TableHead>
             <TableBody>
               {filterData.map((item) => (
-                <TableRow key={item.created_at}>
-                  <TableCell>{getDateFormat(item.created_at)}</TableCell>
-                  <TableCell>{item.field1}</TableCell>
-                  <TableCell>{item.field2}</TableCell>
-                  <TableCell>{item.field3}</TableCell>
-                  <TableCell>{item.field4}</TableCell>
+                <TableRow key={item[4]}>
+                  <TableCell>{getDateFormat(item[4])}</TableCell>
+                  <TableCell>{item[0]}</TableCell>
+                  <TableCell>{item[1]}</TableCell>
+                  <TableCell>{item[2]}</TableCell>
+                  <TableCell>{item[3]}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

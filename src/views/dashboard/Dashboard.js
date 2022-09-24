@@ -499,7 +499,8 @@ const Dashboard = () => {
     return curdate.toLocaleDateString() + " " + curdate.toLocaleTimeString();
   };
 
-  const getAlertData = async () => {
+  const getAlertData = async (e) => {
+    e.preventDefault();
     var startYear = alertDateTime[0].getUTCFullYear().toString();
     var startMonth = (alertDateTime[0].getUTCMonth() + 1)
       .toString()
@@ -565,6 +566,20 @@ const Dashboard = () => {
       }
     }
     setAlertData([...data]);
+    // const tempResponse = await fetch(
+    //   "http://esw-onem2m.iiit.ac.in:443/~/in-cse/in-name/Team-8/Node-1/Data/la", 
+    //   {
+    //     method: "GET",
+    //     headers: {
+    //       "Access-Control-Allow-Origin" : "http://esw-onem2m.iiit.ac.in:443/", 
+    //       "X-M2M-Origin" : "1uVxsR:qYf8QP",
+    //       // "mode" : "cors",
+    //       crossDomain:true
+    //     }
+    //   }
+    // )
+    // const body2 = await response.json();
+    // console.log(body2)
   };
 
   const clearAlertData = () => {
